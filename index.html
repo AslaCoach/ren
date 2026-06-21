@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REN 恋</title>
+<style>
+  :root {
+    --cream: #FAF7F2;
+    --plum: #4A1942;
+    --plum-soft: #6d2a63;
+    --border: #e3d8d0;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--cream);
+    color: #2b2b2b;
+    font-family: Georgia, 'Times New Roman', serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header.site {
+    text-align: center;
+    padding: 28px 16px 10px;
+  }
+  header.site h1 {
+    font-family: Georgia, serif;
+    color: var(--plum);
+    font-size: 2.4rem;
+    letter-spacing: 0.12em;
+    margin: 0;
+    font-weight: normal;
+  }
+  header.site .sub {
+    color: var(--plum-soft);
+    font-style: italic;
+    font-size: 0.95rem;
+    margin-top: 4px;
+    opacity: 0.8;
+  }
+
+  .panels {
+    display: flex;
+    gap: 18px;
+    padding: 18px 22px 24px;
+    flex: 1;
+    align-items: stretch;
+  }
+  .panel {
+    flex: 1 1 0;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 3px rgba(74,25,66,0.05);
+    min-width: 0;
+  }
+  .panel h2 {
+    font-family: Georgia, serif;
+    color: var(--plum);
+    font-size: 1.15rem;
+    margin: 0 0 12px;
+    font-weight: normal;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+  textarea {
+    width: 100%;
+    min-height: 130px;
+    resize: vertical;
+    font-family: Georgia, serif;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: #3a3a3a;
+    background: #fbf9f6;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .share-btn {
+    margin: 12px 0 4px;
+    align-self: flex-start;
+    background: var(--plum);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 9px 18px;
+    font-family: Georgia, serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .share-btn:hover { background: var(--plum-soft); }
+  .share-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .narration {
+    margin-top: 14px;
+    flex: 1;
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: #36242f;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+  }
+  .narration .placeholder {
+    color: #b6a9a0;
+    font-style: italic;
+  }
+  .narration .annotation {
+    font-style: normal;
+    background: #f4ecf2;
+    border-left: 3px solid var(--plum);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+    color: var(--plum);
+  }
+  .narration .working {
+    color: var(--plum-soft);
+    font-style: italic;
+  }
+
+  /* Execution log */
+  .log-wrap {
+    background: #1a1a1a;
+    border-top: 2px solid #000;
+  }
+  .log-head {
+    color: #00ff88;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.75rem;
+    padding: 6px 16px;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+    border-bottom: 1px solid #2a2a2a;
+  }
+  #log {
+    height: 200px;
+    overflow-y: auto;
+    padding: 10px 16px;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    color: #00ff88;
+  }
+  #log .line { white-space: pre-wrap; word-break: break-word; }
+  #log .ts { color: #4a7; opacity: 0.75; }
+  #log .wrote { color: #ffd166; }
+  #log .recalled { color: #5cd6ff; }
+  #log .query { color: #c792ea; }
+  #log .err { color: #ff6b6b; }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <h1>REN 恋</h1>
+  <div class="sub">a narrator with memory</div>
+</header>
+
+<main class="panels">
+  <!-- Panel 1 -->
+  <section class="panel" data-panel="1">
+    <h2>Moment 1 — The Ghosting</h2>
+    <textarea readonly>Christian asked if the tampon box was mine. I said yes lol, I left it for next time, sorry for not telling you. He went quiet. I reached out a few times about hanging out — no response. Eventually I asked: are you ghosting me? He replied 'haha.' That was it.</textarea>
+    <button class="share-btn" onclick="runPanel(1)">Share with Ren</button>
+    <div class="narration"><span class="placeholder">Ren's narration will appear here…</span></div>
+  </section>
+
+  <!-- Panel 2 -->
+  <section class="panel" data-panel="2">
+    <h2>Moment 3 — The Reveal</h2>
+    <textarea readonly>I just got into Stanford MBA. Christian reached out to congratulate me. He said he was intimidated by me and the tampon box sealed it for him — he felt like I was too comfortable and he wasn't on my level. He's been quietly supporting my LinkedIn posts ever since. A year later he got into Chicago MBA. I congratulated him. He said he felt bad it didn't work out and wished me the best.</textarea>
+    <button class="share-btn" onclick="runPanel(2)">Share with Ren</button>
+    <div class="narration"><span class="placeholder">Ren's narration will appear here…</span></div>
+  </section>
+
+  <!-- Panel 3 -->
+  <section class="panel" data-panel="3">
+    <h2>Moment 4 — New Ghost, New Emily</h2>
+    <textarea readonly>There's this cute Indian guy I've been seeing. He's gone quiet on me this week. Honestly? Could be him, could be me — but I'm not going to spiral about it. I'll see what happens.</textarea>
+    <button class="share-btn" onclick="runPanel(3)">Share with Ren</button>
+    <div class="narration"><span class="placeholder">Ren's narration will appear here…</span></div>
+  </section>
+</main>
+
+<div class="log-wrap">
+  <div class="log-head">EXECUTION LOG — HydraDB I/O</div>
+  <div id="log"></div>
+</div>
+
+<!-- Local secrets (gitignored). Copy config.example.js -> config.js and fill in keys. -->
+<script src="config.js"></script>
+<script>
+/* ============================================================
+   KEYS — fill these in
+   ============================================================ */
+// Keys are loaded from config.js (gitignored). Copy config.example.js -> config.js
+// and fill in your keys. See README for details.
+const CFG = window.REN_CONFIG || {};
+const HYDRA_KEY  = CFG.HYDRA_KEY  || "YOUR_HYDRA_KEY_HERE";
+const OPENAI_KEY = CFG.OPENAI_KEY || "YOUR_OPENAI_KEY_HERE";
+
+const HYDRA_BASE  = "https://api.hydradb.com";
+const TENANT_ID   = "ren_dev";
+const MODEL       = "gpt-4o";
+
+/* ============================================================
+   Logging helpers
+   ============================================================ */
+const logEl = document.getElementById("log");
+
+function ts() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, "0");
+  const ms = String(d.getMilliseconds()).padStart(3, "0");
+  return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}.${ms}`;
+}
+
+function logLine(text, cls = "") {
+  const line = document.createElement("div");
+  line.className = "line";
+  const stamp = document.createElement("span");
+  stamp.className = "ts";
+  stamp.textContent = `[${ts()}] `;
+  const body = document.createElement("span");
+  if (cls) body.className = cls;
+  body.textContent = text;
+  line.appendChild(stamp);
+  line.appendChild(body);
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+/* ============================================================
+   HydraDB client
+   ============================================================ */
+async function hydraQuery(query) {
+  logLine(`→ QUERYING HydraDB :: "${query}"`, "query");
+  try {
+    const res = await fetch(`${HYDRA_BASE}/query`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${HYDRA_KEY}`,
+        "API-Version": "2",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ tenant_id: TENANT_ID, type: "memory", query }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const chunks = (data && data.data && data.data.chunks) || [];
+    const texts = chunks.map(c => c.chunkContent).filter(Boolean);
+    logLine(`← RECALLED ${texts.length} memories`, "recalled");
+    return texts;
+  } catch (e) {
+    logLine(`← RECALLED 0 memories (${e.message})`, "recalled");
+    return [];
+  }
+}
+
+async function hydraIngest(text) {
+  try {
+    const form = new FormData();
+    form.append("type", "memory");
+    form.append("tenant_id", TENANT_ID);
+    form.append("memories", JSON.stringify([{ text }]));
+    const res = await fetch(`${HYDRA_BASE}/context/ingest`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${HYDRA_KEY}`,
+        "API-Version": "2",
+      },
+      body: form,
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    logLine(`→ WROTE narration to HydraDB :: "${text.slice(0, 80)}${text.length > 80 ? "…" : ""}"`, "wrote");
+  } catch (e) {
+    logLine(`→ WROTE failed (${e.message})`, "err");
+  }
+}
+
+/* ============================================================
+   OpenAI client
+   ============================================================ */
+async function callRen(system, userContent) {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${OPENAI_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 1000,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: userContent },
+      ],
+    }),
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(`OpenAI HTTP ${res.status} ${errText.slice(0, 200)}`);
+  }
+  const data = await res.json();
+  return data.choices[0].message.content;
+}
+
+/* ============================================================
+   UI helpers
+   ============================================================ */
+function panelEl(n) { return document.querySelector(`.panel[data-panel="${n}"]`); }
+function inputText(n) { return panelEl(n).querySelector("textarea").value.trim(); }
+function narrationEl(n) { return panelEl(n).querySelector(".narration"); }
+function setWorking(n) {
+  narrationEl(n).innerHTML = `<span class="working">Ren is reading the memory and writing…</span>`;
+}
+function setNarration(n, text, annotation) {
+  const el = narrationEl(n);
+  el.innerHTML = "";
+  if (annotation) {
+    const a = document.createElement("div");
+    a.className = "annotation";
+    a.textContent = annotation;
+    el.appendChild(a);
+  }
+  const body = document.createElement("div");
+  body.textContent = text;
+  el.appendChild(body);
+}
+function setError(n, msg) {
+  narrationEl(n).innerHTML = `<span class="placeholder">⚠ ${msg}</span>`;
+}
+
+/* ============================================================
+   Panel logic
+   ============================================================ */
+async function runPanel(n) {
+  const btn = panelEl(n).querySelector(".share-btn");
+  btn.disabled = true;
+  setWorking(n);
+  try {
+    if (n === 1) await panel1();
+    else if (n === 2) await panel2();
+    else if (n === 3) await panel3();
+  } catch (e) {
+    logLine(`✗ ${e.message}`, "err");
+    setError(n, e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ---- Panel 1: The Ghosting ---- */
+async function panel1() {
+  const story = inputText(1);
+
+  await hydraQuery("Emily history relationships ghosting");
+
+  const system =
+    "You are Ren, a warm literary narrator. Write a third-person omniscient " +
+    "narration of this event — 3-4 paragraphs. You must inhabit BOTH people's " +
+    "inner worlds. Emily's perspective AND the other person's interior " +
+    "experience, fears, and assumptions. This is not a journal. It is a novel " +
+    "scene where both characters are fully human. End with one sentence of " +
+    "character analysis about Emily. Never be reassuring or preachy.";
+
+  const narration = await callRen(system, story);
+  setNarration(1, narration);
+
+  await hydraIngest(
+    "Moment 1 - Christian ghosting: " + narration.slice(0, 400) +
+    " ... Emily's pattern: tends toward self-blame, needs prompting to consider " +
+    "alternatives. Christian's profile: warm and communicative, suddenly went " +
+    "quiet — likely something internal."
+  );
+}
+
+/* ---- Panel 2: The Reveal ---- */
+async function panel2() {
+  const story = inputText(2);
+
+  const memories = await hydraQuery("Christian Emily ghosting tampon");
+  if (memories.length) {
+    logLine(`   ↳ first memory: "${memories[0].slice(0, 120)}${memories[0].length > 120 ? "…" : ""}"`, "recalled");
+  }
+
+  const system =
+    "You are Ren. You have memory of a past chapter. A new chapter has arrived " +
+    "that recontextualizes everything. Write two things:\n" +
+    "1. An annotation to the original chapter — what we now know was true that " +
+    "we couldn't have known then (2-3 sentences, start with 'What we now know:')\n" +
+    "2. A new scene narrating this moment of revelation, again from both " +
+    "perspectives — Emily receiving this information, and what Christian carried " +
+    "all this time.\n" +
+    "End with an updated character arc note for Emily: how has she grown since Moment 1?";
+
+  const userContent =
+    "PAST CHAPTER (recalled from memory):\n" +
+    (memories.length ? memories.join("\n---\n") : "(no prior memory found)") +
+    "\n\nNEW CHAPTER:\n" + story;
+
+  const out = await callRen(system, userContent);
+
+  // Split out the leading "What we now know:" annotation if present.
+  let annotation = null, rest = out;
+  const idx = out.indexOf("What we now know:");
+  if (idx !== -1) {
+    const after = out.slice(idx);
+    const para = after.split(/\n\s*\n/)[0];
+    annotation = para.trim();
+    rest = (out.slice(0, idx) + after.slice(para.length)).trim();
+  }
+  setNarration(2, rest, annotation);
+
+  await hydraIngest(
+    "Moment 3 update - Christian revealed intimidation. Original narrative " +
+    "corrected: his silence was self-protection, not rejection. Emily character " +
+    "update: more empathetic, self-appreciative, able to hold complexity. " +
+    "Narrative: " + rest.slice(0, 300)
+  );
+}
+
+/* ---- Panel 3: New Ghost, New Emily ---- */
+async function panel3() {
+  const story = inputText(3);
+
+  const memories = await hydraQuery("Emily pattern ghosting response");
+  memories.slice(0, 3).forEach((m, i) => {
+    logLine(`   ↳ memory ${i + 1}: "${m.slice(0, 120)}${m.length > 120 ? "…" : ""}"`, "recalled");
+  });
+
+  const system =
+    "You are Ren. You have Emily's full story — the Christian ghosting, the " +
+    "revelation, her growth. A new ghosting has arrived. But read her response: " +
+    "'could be him, could be me, not going to spiral.'\n" +
+    "Write:\n" +
+    "1. A short narration of this new moment (2 paragraphs) — both perspectives, " +
+    "same literary style\n" +
+    "2. A character development note: explicitly compare Emily in Moment 1 " +
+    "(self-blame spiral) to Emily now (settled, curious, not activated). Name " +
+    "what has shifted. This is the arc.";
+
+  const userContent =
+    "EMILY'S FULL HISTORY (recalled from memory):\n" +
+    (memories.length ? memories.join("\n---\n") : "(no prior memory found)") +
+    "\n\nNEW MOMENT:\n" + story;
+
+  const out = await callRen(system, userContent);
+  setNarration(3, out);
+
+  await hydraIngest(
+    "Moment 4 - New ghosting, new Emily. She is settled, curious, not activated; " +
+    "no self-blame spiral. The arc from Moment 1 is complete: she can hold " +
+    "ambiguity without collapsing into self-blame. " +
+    "Narrative: " + out.slice(0, 300)
+  );
+}
+</script>
+</body>
+</html>

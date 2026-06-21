@@ -1,0 +1,9 @@
+# Local secrets — never commit
+config.js
+
+# OS / editor cruft
+.DS_Store
+node_modules/
+package-lock.json
+package.json
+test-hydra.js
