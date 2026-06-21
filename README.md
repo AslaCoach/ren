@@ -21,7 +21,7 @@ A live execution log shows every HydraDB read/write.
    Then edit `config.js` with your HydraDB and OpenAI keys.
    `config.js` is gitignored, so your keys never get committed.
 
-2. Open `index.html` in a browser.
+2. Run: `node proxy.js` then open http://localhost:8787
 
 3. Click **Share with Ren** on Moment 1 first, so HydraDB has memories for
    Moments 3 and 4 to recall.

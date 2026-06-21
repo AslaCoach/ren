@@ -212,6 +212,12 @@ const HYDRA_BASE  = "https://api.hydradb.com";
 const TENANT_ID   = "ren_dev";
 const MODEL       = "gpt-4o";
 
+// When the page is served by proxy.js (http/https) we route everything through
+// the local proxy — keys stay on the server and there are no CORS issues.
+// Opened directly as a file:// the app falls back to calling the APIs directly
+// using the keys from config.js.
+const USE_PROXY = location.protocol === "http:" || location.protocol === "https:";
+
 /* ============================================================
    Logging helpers
    ============================================================ */
@@ -245,19 +251,30 @@ function logLine(text, cls = "") {
 async function hydraQuery(query) {
   logLine(`→ QUERYING HydraDB :: "${query}"`, "query");
   try {
-    const res = await fetch(`${HYDRA_BASE}/query`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${HYDRA_KEY}`,
-        "API-Version": "2",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ tenant_id: TENANT_ID, type: "memory", query }),
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    const chunks = (data && data.data && data.data.chunks) || [];
-    const texts = chunks.map(c => c.chunkContent).filter(Boolean);
+    let texts;
+    if (USE_PROXY) {
+      const res = await fetch("/api/hydra/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${(await res.json().catch(() => ({}))).error || ""}`);
+      texts = (await res.json()).memories || [];
+    } else {
+      const res = await fetch(`${HYDRA_BASE}/query`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${HYDRA_KEY}`,
+          "API-Version": "2",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ tenant_id: TENANT_ID, type: "memory", query }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const chunks = (data && data.data && data.data.chunks) || [];
+      texts = chunks.map(c => c.chunkContent).filter(Boolean);
+    }
     logLine(`← RECALLED ${texts.length} memories`, "recalled");
     return texts;
   } catch (e) {
@@ -268,19 +285,28 @@ async function hydraQuery(query) {
 
 async function hydraIngest(text) {
   try {
-    const form = new FormData();
-    form.append("type", "memory");
-    form.append("tenant_id", TENANT_ID);
-    form.append("memories", JSON.stringify([{ text }]));
-    const res = await fetch(`${HYDRA_BASE}/context/ingest`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${HYDRA_KEY}`,
-        "API-Version": "2",
-      },
-      body: form,
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (USE_PROXY) {
+      const res = await fetch("/api/hydra/ingest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${(await res.json().catch(() => ({}))).error || ""}`);
+    } else {
+      const form = new FormData();
+      form.append("type", "memory");
+      form.append("tenant_id", TENANT_ID);
+      form.append("memories", JSON.stringify([{ text }]));
+      const res = await fetch(`${HYDRA_BASE}/context/ingest`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${HYDRA_KEY}`,
+          "API-Version": "2",
+        },
+        body: form,
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    }
     logLine(`→ WROTE narration to HydraDB :: "${text.slice(0, 80)}${text.length > 80 ? "…" : ""}"`, "wrote");
   } catch (e) {
     logLine(`→ WROTE failed (${e.message})`, "err");
@@ -291,6 +317,18 @@ async function hydraIngest(text) {
    OpenAI client
    ============================================================ */
 async function callRen(system, userContent) {
+  if (USE_PROXY) {
+    const res = await fetch("/api/openai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ system, user: userContent }),
+    });
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({}))).error || `HTTP ${res.status}`;
+      throw new Error(`Ren (proxy): ${err}`);
+    }
+    return (await res.json()).text;
+  }
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
