@@ -322,7 +322,7 @@
       <span class="tc-icon">🌱</span>
       <span class="tc-text">
         <span class="tc-title">New Chapter</span>
-        <span class="tc-meta">Raj · this week</span>
+        <span class="tc-meta">Dev · this week</span>
       </span>
     </button>
   </aside>
@@ -536,8 +536,8 @@ const MOMENTS = {
     story: `I just got into Stanford MBA. Christian reached out to congratulate me. He said he was intimidated by me and the toiletry bag sealed it for him — he felt like I was too comfortable and he wasn't on my level. He's been quietly supporting my LinkedIn posts ever since. A year later he got into Chicago MBA. I congratulated him. He said he felt bad it didn't work out and wished me the best.`,
   },
   3: {
-    icon: "🌱", title: "New Chapter", meta: "Raj · this week", other: "Raj",
-    story: `There's this cute Indian guy I've been seeing. He's gone quiet on me this week. Honestly? Could be him, could be me — but I'm not going to spiral about it. I'll see what happens.`,
+    icon: "🌱", title: "New Chapter", meta: "Dev · this week", other: "Dev",
+    story: `There's this cute guy, Dev, I've been seeing. He's gone quiet on me this week. Honestly? Could be him, could be me — but I'm not going to spiral about it. I'll see what happens.`,
   },
 };
 
@@ -785,14 +785,14 @@ async function panel3() {
 
   const system =
     "You are Ren. You have Emily's full story — the Christian ghosting, the " +
-    "revelation, her growth. A new ghosting has arrived, this time from Raj. But " +
+    "revelation, her growth. A new ghosting has arrived, this time from Dev. But " +
     "read her response: 'could be him, could be me, not going to spiral.' " +
     TONE + "\n\n" + JSON_RULE + " Fields:\n" +
     SUMMARY_RULE + "\n" +
     "\"narration\": a short narration of this new moment (2 paragraphs) — both perspectives, same literary style.\n" +
     "\"emilyArc\": a character development note that explicitly compares Emily in Moment 1 " +
     "(self-blame spiral) to Emily now (settled, curious, not activated). Name what has shifted. This is the arc.\n" +
-    "\"christianArc\": one or two sentences inhabiting Raj — his perspective and what might be going on for him.";
+    "\"christianArc\": one or two sentences inhabiting Dev — his perspective and what might be going on for him.";
 
   const userContent =
     "EMILY'S FULL HISTORY (recalled from memory):\n" +
