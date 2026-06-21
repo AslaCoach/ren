@@ -12,85 +12,167 @@
     --border: #e3d8d0;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
+  html, body { margin: 0; padding: 0; height: 100%; }
   body {
     background: var(--cream);
     color: #2b2b2b;
     font-family: Georgia, 'Times New Roman', serif;
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     flex-direction: column;
   }
+
+  /* ---- top header ---- */
   header.site {
+    flex: none;
     text-align: center;
-    padding: 28px 16px 10px;
+    padding: 18px 16px 14px;
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
   }
   header.site h1 {
     font-family: Georgia, serif;
     color: var(--plum);
-    font-size: 2.4rem;
-    letter-spacing: 0.12em;
+    font-size: 2rem;
+    letter-spacing: 0.14em;
     margin: 0;
     font-weight: normal;
   }
   header.site .sub {
     color: var(--plum-soft);
     font-style: italic;
-    font-size: 0.95rem;
-    margin-top: 4px;
+    font-size: 0.9rem;
+    margin-top: 2px;
     opacity: 0.8;
   }
 
-  .panels {
+  /* ---- app body: sidebar + workspace ---- */
+  .app {
     display: flex;
-    gap: 18px;
-    padding: 18px 22px 24px;
     flex: 1;
-    align-items: stretch;
+    min-height: 0;
   }
-  .panel {
-    flex: 1 1 0;
+
+  /* sidebar timeline */
+  .sidebar {
+    width: 250px;
+    flex: none;
     background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 18px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 1px 3px rgba(74,25,66,0.05);
-    min-width: 0;
+    border-right: 1px solid var(--border);
+    padding: 20px 16px;
+    overflow-y: auto;
   }
-  .panel h2 {
+  .sidebar .timeline-title {
     font-family: Georgia, serif;
     color: var(--plum);
-    font-size: 1.15rem;
-    margin: 0 0 12px;
-    font-weight: normal;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 8px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 0 0 16px;
+    opacity: 0.75;
   }
-  textarea {
+  .timeline-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     width: 100%;
-    min-height: 130px;
-    resize: vertical;
-    font-family: Georgia, serif;
-    font-size: 0.92rem;
-    line-height: 1.5;
-    color: #3a3a3a;
+    text-align: left;
     background: #fbf9f6;
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 10px 12px;
+    border-radius: 10px;
+    padding: 14px 14px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-family: Georgia, serif;
+    color: #3a2a34;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  }
+  .timeline-card:hover { border-color: var(--plum-soft); transform: translateY(-1px); }
+  .timeline-card .tc-icon { font-size: 1.4rem; line-height: 1; flex: none; }
+  .timeline-card .tc-text { display: flex; flex-direction: column; min-width: 0; }
+  .timeline-card .tc-title { font-size: 1rem; }
+  .timeline-card .tc-meta { font-size: 0.78rem; opacity: 0.7; margin-top: 2px; }
+  .timeline-card.active {
+    background: var(--plum);
+    border-color: var(--plum);
+    color: var(--cream);
+    box-shadow: 0 2px 8px rgba(74,25,66,0.25);
+  }
+  .timeline-card.active .tc-meta { opacity: 0.85; }
+  .timeline-connector {
+    width: 1px;
+    height: 10px;
+    background: var(--border);
+    margin: -8px auto 4px 27px;
+  }
+
+  /* workspace */
+  .workspace {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    padding: 24px 28px 28px;
+  }
+  .moment-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .moment-banner .mb-icon { font-size: 2rem; line-height: 1; }
+  .moment-banner .mb-title {
+    font-family: Georgia, serif;
+    color: var(--plum);
+    font-size: 1.5rem;
+  }
+  .moment-banner .mb-meta {
+    font-size: 0.85rem;
+    color: var(--plum-soft);
+    font-style: italic;
+    margin-top: 2px;
+  }
+
+  .cols {
+    display: grid;
+    grid-template-columns: 1.55fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+
+  .field-label, .col-title {
+    font-family: Georgia, serif;
+    color: var(--plum);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0 0 8px;
+    opacity: 0.8;
+    display: block;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 150px;
+    resize: vertical;
+    font-family: Georgia, serif;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: #3a3a3a;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
   }
   .share-btn {
-    margin: 12px 0 4px;
-    align-self: flex-start;
+    margin: 14px 0 0;
     background: var(--plum);
     color: #fff;
     border: none;
-    border-radius: 6px;
-    padding: 9px 18px;
+    border-radius: 8px;
+    padding: 11px 22px;
     font-family: Georgia, serif;
-    font-size: 0.95rem;
+    font-size: 0.98rem;
     cursor: pointer;
     transition: background 0.15s ease;
   }
@@ -98,37 +180,61 @@
   .share-btn:disabled { opacity: 0.5; cursor: default; }
 
   .narration {
-    margin-top: 14px;
-    flex: 1;
+    margin-top: 22px;
     font-family: Georgia, serif;
     font-style: italic;
-    font-size: 0.95rem;
-    line-height: 1.65;
+    font-size: 1rem;
+    line-height: 1.75;
     color: #36242f;
     white-space: pre-wrap;
     overflow-wrap: break-word;
   }
-  .narration .placeholder {
-    color: #b6a9a0;
-    font-style: italic;
-  }
+  .narration .placeholder { color: #b6a9a0; font-style: italic; }
+  .narration .working { color: var(--plum-soft); font-style: italic; }
   .narration .annotation {
     font-style: normal;
     background: #f4ecf2;
     border-left: 3px solid var(--plum);
-    padding: 8px 12px;
+    padding: 10px 14px;
     border-radius: 4px;
-    margin-bottom: 12px;
-    font-size: 0.9rem;
+    margin-bottom: 16px;
+    font-size: 0.92rem;
     color: var(--plum);
   }
-  .narration .working {
-    color: var(--plum-soft);
-    font-style: italic;
-  }
 
-  /* Execution log */
+  /* character analysis (plum panel, cream text) */
+  .arc-card {
+    background: var(--plum);
+    color: var(--cream);
+    border-radius: 12px;
+    padding: 20px 20px 22px;
+    box-shadow: 0 3px 12px rgba(74,25,66,0.2);
+    position: sticky;
+    top: 0;
+  }
+  .arc-card .arc-label {
+    font-family: Georgia, serif;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    opacity: 0.7;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(250,247,242,0.2);
+    padding-bottom: 10px;
+  }
+  .arc-card .arc-body {
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 0.98rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+  }
+  .arc-card .arc-body.empty { opacity: 0.55; font-size: 0.9rem; }
+
+  /* ---- execution log (unchanged) ---- */
   .log-wrap {
+    flex: none;
     background: #1a1a1a;
     border-top: 2px solid #000;
   }
@@ -165,31 +271,68 @@
   <div class="sub">a narrator with memory</div>
 </header>
 
-<main class="panels">
-  <!-- Panel 1 -->
-  <section class="panel" data-panel="1">
-    <h2>Moment 1 — The Ghosting</h2>
-    <textarea readonly>Christian asked if the tampon box was mine. I said yes lol, I left it for next time, sorry for not telling you. He went quiet. I reached out a few times about hanging out — no response. Eventually I asked: are you ghosting me? He replied 'haha.' That was it.</textarea>
-    <button class="share-btn" onclick="runPanel(1)">Share with Ren</button>
-    <div class="narration"><span class="placeholder">Ren's narration will appear here…</span></div>
-  </section>
+<div class="app">
+  <!-- Left sidebar: Emily's Story Timeline -->
+  <aside class="sidebar">
+    <h2 class="timeline-title">Emily's Story Timeline</h2>
 
-  <!-- Panel 2 -->
-  <section class="panel" data-panel="2">
-    <h2>Moment 3 — The Reveal</h2>
-    <textarea readonly>I just got into Stanford MBA. Christian reached out to congratulate me. He said he was intimidated by me and the tampon box sealed it for him — he felt like I was too comfortable and he wasn't on my level. He's been quietly supporting my LinkedIn posts ever since. A year later he got into Chicago MBA. I congratulated him. He said he felt bad it didn't work out and wished me the best.</textarea>
-    <button class="share-btn" onclick="runPanel(2)">Share with Ren</button>
-    <div class="narration"><span class="placeholder">Ren's narration will appear here…</span></div>
-  </section>
+    <button class="timeline-card" data-moment="1" onclick="selectMoment(1)">
+      <span class="tc-icon">💔</span>
+      <span class="tc-text">
+        <span class="tc-title">The Ghosting</span>
+        <span class="tc-meta">Christian · 6 months ago</span>
+      </span>
+    </button>
+    <div class="timeline-connector"></div>
 
-  <!-- Panel 3 -->
-  <section class="panel" data-panel="3">
-    <h2>Moment 4 — New Ghost, New Emily</h2>
-    <textarea readonly>There's this cute Indian guy I've been seeing. He's gone quiet on me this week. Honestly? Could be him, could be me — but I'm not going to spiral about it. I'll see what happens.</textarea>
-    <button class="share-btn" onclick="runPanel(3)">Share with Ren</button>
-    <div class="narration"><span class="placeholder">Ren's narration will appear here…</span></div>
-  </section>
-</main>
+    <button class="timeline-card" data-moment="2" onclick="selectMoment(2)">
+      <span class="tc-icon">✨</span>
+      <span class="tc-text">
+        <span class="tc-title">The Reveal</span>
+        <span class="tc-meta">Christian reaches out · present</span>
+      </span>
+    </button>
+    <div class="timeline-connector"></div>
+
+    <button class="timeline-card" data-moment="3" onclick="selectMoment(3)">
+      <span class="tc-icon">🌱</span>
+      <span class="tc-text">
+        <span class="tc-title">New Chapter</span>
+        <span class="tc-meta">Raj · this week</span>
+      </span>
+    </button>
+  </aside>
+
+  <!-- Right workspace -->
+  <main class="workspace">
+    <div class="moment-banner">
+      <span id="moment-icon" class="mb-icon"></span>
+      <div>
+        <div id="moment-title" class="mb-title"></div>
+        <div id="moment-meta" class="mb-meta"></div>
+      </div>
+    </div>
+
+    <div class="cols">
+      <!-- story + narration -->
+      <section class="story-col">
+        <label class="field-label" for="story-input">What happened</label>
+        <textarea id="story-input" readonly></textarea>
+        <button id="share-btn" class="share-btn" onclick="runPanel(activeMoment)">Share with Ren</button>
+        <div class="narration" id="narration"><span class="placeholder">Ren's narration will appear here…</span></div>
+      </section>
+
+      <!-- character analysis -->
+      <aside class="arc-col">
+        <span class="col-title">Character Analysis</span>
+        <div class="arc-card">
+          <div class="arc-label">Emily's Arc</div>
+          <div class="arc-body empty" id="arc-body"></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
 
 <div class="log-wrap">
   <div class="log-head">EXECUTION LOG — HydraDB I/O</div>
@@ -353,36 +496,128 @@ async function callRen(system, userContent) {
 }
 
 /* ============================================================
-   UI helpers
+   Moments + UI state
    ============================================================ */
-function panelEl(n) { return document.querySelector(`.panel[data-panel="${n}"]`); }
-function inputText(n) { return panelEl(n).querySelector("textarea").value.trim(); }
-function narrationEl(n) { return panelEl(n).querySelector(".narration"); }
+const MOMENTS = {
+  1: {
+    icon: "💔", title: "The Ghosting", meta: "Christian · 6 months ago",
+    story: `Christian asked if the tampon box was mine. I said yes lol, I left it for next time, sorry for not telling you. He went quiet. I reached out a few times about hanging out — no response. Eventually I asked: are you ghosting me? He replied 'haha.' That was it.`,
+  },
+  2: {
+    icon: "✨", title: "The Reveal", meta: "Christian reaches out · present",
+    story: `I just got into Stanford MBA. Christian reached out to congratulate me. He said he was intimidated by me and the tampon box sealed it for him — he felt like I was too comfortable and he wasn't on my level. He's been quietly supporting my LinkedIn posts ever since. A year later he got into Chicago MBA. I congratulated him. He said he felt bad it didn't work out and wished me the best.`,
+  },
+  3: {
+    icon: "🌱", title: "New Chapter", meta: "Raj · this week",
+    story: `There's this cute Indian guy I've been seeing. He's gone quiet on me this week. Honestly? Could be him, could be me — but I'm not going to spiral about it. I'll see what happens.`,
+  },
+};
+
+// Per-moment result store so switching the timeline keeps each moment's output.
+const results = { 1: null, 2: null, 3: null };
+let activeMoment = 1;
+
+// Pull the character-analysis / arc note out of Ren's narration so it can be
+// shown separately in the Character Analysis panel.
+function splitArc(text) {
+  const re = /\n[ \t]*(?:\d+\.\s*)?(?:updated\s+)?character\s+(?:development\s+note|arc\s+note|arc|analysis)\b[^\n]*\n?/i;
+  const m = re.exec(text);
+  if (m && m.index > 0) {
+    let body = text.slice(0, m.index);
+    let arc = text.slice(m.index + m[0].length).trim();
+    const afterColon = m[0].split(/:(.*)/s)[1];
+    if (afterColon && afterColon.trim()) arc = (afterColon.trim() + (arc ? "\n\n" + arc : "")).trim();
+    return { body: cleanBody(body), arc };
+  }
+  // Fallback: treat the final paragraph as the character note.
+  const paras = text.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+  if (paras.length > 1) {
+    const arc = paras.pop();
+    return { body: cleanBody(paras.join("\n\n")), arc };
+  }
+  return { body: cleanBody(text), arc: "" };
+}
+function cleanBody(b) {
+  return b.replace(/^\s*\d+\.\s*/, "").replace(/\n[ \t]*\d+\.\s*$/, "").trim();
+}
+
+/* ============================================================
+   Rendering
+   ============================================================ */
+function renderActive() {
+  const m = MOMENTS[activeMoment];
+  document.getElementById("moment-icon").textContent = m.icon;
+  document.getElementById("moment-title").textContent = m.title;
+  document.getElementById("moment-meta").textContent = m.meta;
+  document.getElementById("story-input").value = m.story;
+
+  const nar = document.getElementById("narration");
+  const arcEl = document.getElementById("arc-body");
+  const r = results[activeMoment];
+
+  // Narration column
+  nar.innerHTML = "";
+  if (!r) {
+    nar.innerHTML = `<span class="placeholder">Ren's narration will appear here…</span>`;
+  } else if (r.working) {
+    nar.innerHTML = `<span class="working">Ren is reading the memory and writing…</span>`;
+  } else if (r.error) {
+    nar.innerHTML = `<span class="placeholder">⚠ ${r.error}</span>`;
+  } else {
+    if (r.annotation) {
+      const a = document.createElement("div");
+      a.className = "annotation";
+      a.textContent = r.annotation;
+      nar.appendChild(a);
+    }
+    const body = document.createElement("div");
+    body.textContent = r.body;
+    nar.appendChild(body);
+  }
+
+  // Character Analysis column
+  if (r && !r.working && !r.error && r.arc) {
+    arcEl.textContent = r.arc;
+    arcEl.classList.remove("empty");
+  } else if (r && r.working) {
+    arcEl.textContent = "Reading Emily's arc…";
+    arcEl.classList.add("empty");
+  } else {
+    arcEl.textContent = "Emily's character arc will surface here once Ren has narrated this moment.";
+    arcEl.classList.add("empty");
+  }
+}
+
+function selectMoment(n) {
+  activeMoment = n;
+  document.querySelectorAll(".timeline-card").forEach(c =>
+    c.classList.toggle("active", Number(c.dataset.moment) === n));
+  renderActive();
+}
+
+/* ============================================================
+   UI helpers (called by the unchanged panel logic below)
+   ============================================================ */
+function inputText(n) { return MOMENTS[n].story.trim(); }
 function setWorking(n) {
-  narrationEl(n).innerHTML = `<span class="working">Ren is reading the memory and writing…</span>`;
+  results[n] = { working: true };
+  if (n === activeMoment) renderActive();
 }
 function setNarration(n, text, annotation) {
-  const el = narrationEl(n);
-  el.innerHTML = "";
-  if (annotation) {
-    const a = document.createElement("div");
-    a.className = "annotation";
-    a.textContent = annotation;
-    el.appendChild(a);
-  }
-  const body = document.createElement("div");
-  body.textContent = text;
-  el.appendChild(body);
+  const { body, arc } = splitArc(text);
+  results[n] = { annotation: annotation || null, body, arc };
+  if (n === activeMoment) renderActive();
 }
 function setError(n, msg) {
-  narrationEl(n).innerHTML = `<span class="placeholder">⚠ ${msg}</span>`;
+  results[n] = { error: msg };
+  if (n === activeMoment) renderActive();
 }
 
 /* ============================================================
    Panel logic
    ============================================================ */
 async function runPanel(n) {
-  const btn = panelEl(n).querySelector(".share-btn");
+  const btn = document.getElementById("share-btn");
   btn.disabled = true;
   setWorking(n);
   try {
@@ -502,6 +737,11 @@ async function panel3() {
     "Narrative: " + out.slice(0, 300)
   );
 }
+
+/* ============================================================
+   Init
+   ============================================================ */
+selectMoment(1);
 </script>
 </body>
 </html>
