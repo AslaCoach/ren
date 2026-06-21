@@ -611,7 +611,7 @@ function renderActive() {
       box.className = "summary-box";
       const lab = document.createElement("div");
       lab.className = "summary-label";
-      lab.textContent = "What Ren Sees";
+      lab.textContent = "Narrative Summary";
       const txt = document.createElement("div");
       txt.className = "summary-text";
       txt.textContent = r.summary;
@@ -679,6 +679,19 @@ const JSON_RULE =
   "Respond ONLY with a single valid JSON object — no markdown, no code fences, " +
   "no text outside the JSON. All field values are plain strings.";
 
+// Shared spec for the "summary" field — psychological, not a plot recap.
+const SUMMARY_RULE =
+  "\"summary\": 3-4 sentences, warm and psychological, in the same Sally Rooney " +
+  "register. This is NOT a plot recap — do not list what happened. Begin with the " +
+  "insight: what this moment really was beneath the surface. Then add 1-2 sentences " +
+  "on what each person carried into it — their unspoken assumptions, what they hoped " +
+  "for, what they feared. Example of the right length, depth, and tone: \"A small act " +
+  "of comfort became a test neither of them knew they were taking. Emily read it as " +
+  "practical — a quiet assertion that there would be a next time. Christian read it as " +
+  "permanence, a claim on a future he hadn't yet decided to offer. He'd been generous " +
+  "with his time but stingy with his certainty, and the bag made the gap between those " +
+  "two things impossible to ignore.\"";
+
 async function runPanel(n) {
   const btn = document.getElementById("share-btn");
   btn.disabled = true;
@@ -708,7 +721,7 @@ async function panel1() {
     "experience, fears, and assumptions. This is not a journal. It is a novel " +
     "scene where both characters are fully human. Never be reassuring or preachy. " +
     TONE + "\n\n" + JSON_RULE + " Fields:\n" +
-    "\"summary\": 2-3 sentences, plain English, what just happened (a quick factual read, not literary).\n" +
+    SUMMARY_RULE + "\n" +
     "\"narration\": the full 3-4 paragraph novel scene described above.\n" +
     "\"emilyArc\": one or two sentences of character analysis about Emily.\n" +
     "\"christianArc\": one or two sentences inhabiting Christian — his perspective, fears, and what is happening inside him.";
@@ -737,7 +750,7 @@ async function panel2() {
     "You are Ren. You have memory of a past chapter. A new chapter has arrived " +
     "that recontextualizes everything. " +
     TONE + "\n\n" + JSON_RULE + " Fields:\n" +
-    "\"summary\": 2-3 sentences, plain English, what this new chapter reveals (a quick factual read).\n" +
+    SUMMARY_RULE + "\n" +
     "\"annotation\": an annotation to the original chapter — what we now know was true that we " +
     "couldn't have known then (2-3 sentences, start with 'What we now know:').\n" +
     "\"narration\": a new scene narrating this moment of revelation, from both perspectives — Emily " +
@@ -775,7 +788,7 @@ async function panel3() {
     "revelation, her growth. A new ghosting has arrived, this time from Raj. But " +
     "read her response: 'could be him, could be me, not going to spiral.' " +
     TONE + "\n\n" + JSON_RULE + " Fields:\n" +
-    "\"summary\": 2-3 sentences, plain English, what is happening now (a quick factual read).\n" +
+    SUMMARY_RULE + "\n" +
     "\"narration\": a short narration of this new moment (2 paragraphs) — both perspectives, same literary style.\n" +
     "\"emilyArc\": a character development note that explicitly compares Emily in Moment 1 " +
     "(self-blame spiral) to Emily now (settled, curious, not activated). Name what has shifted. This is the arc.\n" +
