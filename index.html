@@ -201,6 +201,29 @@
     font-size: 0.92rem;
     color: var(--plum);
   }
+  /* Story Summary — quick read above the full narration */
+  .narration .summary-box {
+    font-style: normal;
+    background: #f4ecf2;
+    border: 1px solid #e4d4e0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+  }
+  .narration .summary-label {
+    font-style: normal;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--plum-soft);
+    margin-bottom: 6px;
+  }
+  .narration .summary-text {
+    font-style: normal;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: #4a3a44;
+  }
 
   /* character analysis (plum panel, cream text) */
   .arc-card {
@@ -209,9 +232,10 @@
     border-radius: 12px;
     padding: 20px 20px 22px;
     box-shadow: 0 3px 12px rgba(74,25,66,0.2);
-    position: sticky;
-    top: 0;
   }
+  .arc-card + .arc-card { margin-top: 16px; }
+  /* second card — slightly lighter plum so the two are visually distinct */
+  .arc-card.arc-card-other { background: var(--plum-soft); }
   .arc-card .arc-label {
     font-family: Georgia, serif;
     font-size: 0.78rem;
@@ -268,7 +292,7 @@
 
 <header class="site">
   <h1>REN 恋</h1>
-  <div class="sub">a narrator with memory</div>
+  <div class="sub">your story, from both sides</div>
 </header>
 
 <div class="app">
@@ -327,7 +351,11 @@
         <span class="col-title">Character Analysis</span>
         <div class="arc-card">
           <div class="arc-label">Emily's Arc</div>
-          <div class="arc-body empty" id="arc-body"></div>
+          <div class="arc-body empty" id="arc-emily"></div>
+        </div>
+        <div class="arc-card arc-card-other">
+          <div class="arc-label" id="arc-other-label">Christian's Arc</div>
+          <div class="arc-body empty" id="arc-other"></div>
         </div>
       </aside>
     </div>
@@ -500,15 +528,15 @@ async function callRen(system, userContent) {
    ============================================================ */
 const MOMENTS = {
   1: {
-    icon: "💔", title: "The Ghosting", meta: "Christian · 6 months ago",
-    story: `Christian asked if the toiletry bag was mine. I said yes lol, I left it for next time, sorry for not telling you. He went quiet. I reached out a few times about hanging out — no response. Eventually I asked: are you ghosting me? He replied 'haha.' That was it.`,
+    icon: "💔", title: "The Ghosting", meta: "Christian · 6 months ago", other: "Christian",
+    story: `Christian found the toiletry bag I'd left in his bathroom cabinet. I'd texted him saying yes it's mine, I left it for next time — sorry for not telling you. He went quiet. I reached out a few times about hanging out, no response. Eventually I asked: are you ghosting me? He replied 'haha.' That was it.`,
   },
   2: {
-    icon: "✨", title: "The Reveal", meta: "Christian reaches out · present",
+    icon: "✨", title: "The Reveal", meta: "Christian reaches out · present", other: "Christian",
     story: `I just got into Stanford MBA. Christian reached out to congratulate me. He said he was intimidated by me and the toiletry bag sealed it for him — he felt like I was too comfortable and he wasn't on my level. He's been quietly supporting my LinkedIn posts ever since. A year later he got into Chicago MBA. I congratulated him. He said he felt bad it didn't work out and wished me the best.`,
   },
   3: {
-    icon: "🌱", title: "New Chapter", meta: "Raj · this week",
+    icon: "🌱", title: "New Chapter", meta: "Raj · this week", other: "Raj",
     story: `There's this cute Indian guy I've been seeing. He's gone quiet on me this week. Honestly? Could be him, could be me — but I'm not going to spiral about it. I'll see what happens.`,
   },
 };
@@ -517,42 +545,55 @@ const MOMENTS = {
 const results = { 1: null, 2: null, 3: null };
 let activeMoment = 1;
 
-// Pull the character-analysis / arc note out of Ren's narration so it can be
-// shown separately in the Character Analysis panel.
-function splitArc(text) {
-  const re = /\n[ \t]*(?:\d+\.\s*)?(?:updated\s+)?character\s+(?:development\s+note|arc\s+note|arc|analysis)\b[^\n]*\n?/i;
-  const m = re.exec(text);
-  if (m && m.index > 0) {
-    let body = text.slice(0, m.index);
-    let arc = text.slice(m.index + m[0].length).trim();
-    const afterColon = m[0].split(/:(.*)/s)[1];
-    if (afterColon && afterColon.trim()) arc = (afterColon.trim() + (arc ? "\n\n" + arc : "")).trim();
-    return { body: cleanBody(body), arc };
+// Ren now replies with a JSON object. Parse it defensively (the model may wrap
+// it in code fences or add stray text); fall back to treating the whole reply
+// as the narration if it isn't valid JSON.
+function parseRen(text) {
+  let t = (text || "").trim();
+  t = t.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+  const a = t.indexOf("{"), b = t.lastIndexOf("}");
+  if (a !== -1 && b !== -1 && b > a) t = t.slice(a, b + 1);
+  try {
+    const o = JSON.parse(t);
+    return {
+      summary: o.summary || "",
+      annotation: o.annotation || null,
+      narration: o.narration || "",
+      emilyArc: o.emilyArc || "",
+      otherArc: o.christianArc || o.otherArc || o.rajArc || "",
+    };
+  } catch {
+    return { summary: "", annotation: null, narration: text || "", emilyArc: "", otherArc: "" };
   }
-  // Fallback: treat the final paragraph as the character note.
-  const paras = text.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
-  if (paras.length > 1) {
-    const arc = paras.pop();
-    return { body: cleanBody(paras.join("\n\n")), arc };
-  }
-  return { body: cleanBody(text), arc: "" };
-}
-function cleanBody(b) {
-  return b.replace(/^\s*\d+\.\s*/, "").replace(/\n[ \t]*\d+\.\s*$/, "").trim();
 }
 
 /* ============================================================
    Rendering
    ============================================================ */
+function setArc(el, r, field, placeholder) {
+  if (r && !r.working && !r.error && r[field]) {
+    el.textContent = r[field];
+    el.classList.remove("empty");
+  } else if (r && r.working) {
+    el.textContent = "Reading…";
+    el.classList.add("empty");
+  } else {
+    el.textContent = placeholder;
+    el.classList.add("empty");
+  }
+}
+
 function renderActive() {
   const m = MOMENTS[activeMoment];
   document.getElementById("moment-icon").textContent = m.icon;
   document.getElementById("moment-title").textContent = m.title;
   document.getElementById("moment-meta").textContent = m.meta;
   document.getElementById("story-input").value = m.story;
+  document.getElementById("arc-other-label").textContent = `${m.other}'s Arc`;
 
   const nar = document.getElementById("narration");
-  const arcEl = document.getElementById("arc-body");
+  const emilyEl = document.getElementById("arc-emily");
+  const otherEl = document.getElementById("arc-other");
   const r = results[activeMoment];
 
   // Narration column
@@ -564,6 +605,20 @@ function renderActive() {
   } else if (r.error) {
     nar.innerHTML = `<span class="placeholder">⚠ ${r.error}</span>`;
   } else {
+    // Story Summary — quick read above the full narration
+    if (r.summary) {
+      const box = document.createElement("div");
+      box.className = "summary-box";
+      const lab = document.createElement("div");
+      lab.className = "summary-label";
+      lab.textContent = "What Ren Sees";
+      const txt = document.createElement("div");
+      txt.className = "summary-text";
+      txt.textContent = r.summary;
+      box.appendChild(lab);
+      box.appendChild(txt);
+      nar.appendChild(box);
+    }
     if (r.annotation) {
       const a = document.createElement("div");
       a.className = "annotation";
@@ -571,21 +626,16 @@ function renderActive() {
       nar.appendChild(a);
     }
     const body = document.createElement("div");
-    body.textContent = r.body;
+    body.className = "narration-prose";
+    body.textContent = r.narration;
     nar.appendChild(body);
   }
 
-  // Character Analysis column
-  if (r && !r.working && !r.error && r.arc) {
-    arcEl.textContent = r.arc;
-    arcEl.classList.remove("empty");
-  } else if (r && r.working) {
-    arcEl.textContent = "Reading Emily's arc…";
-    arcEl.classList.add("empty");
-  } else {
-    arcEl.textContent = "Emily's character arc will surface here once Ren has narrated this moment.";
-    arcEl.classList.add("empty");
-  }
+  // Character Analysis column — Emily's Arc + the other person's Arc
+  setArc(emilyEl, r, "emilyArc",
+    "Emily's character arc will surface here once Ren has narrated this moment.");
+  setArc(otherEl, r, "otherArc",
+    `${m.other}'s perspective will surface here once Ren has narrated this moment.`);
 }
 
 function selectMoment(n) {
@@ -596,16 +646,21 @@ function selectMoment(n) {
 }
 
 /* ============================================================
-   UI helpers (called by the unchanged panel logic below)
+   UI helpers (called by the panel logic below)
    ============================================================ */
 function inputText(n) { return MOMENTS[n].story.trim(); }
 function setWorking(n) {
   results[n] = { working: true };
   if (n === activeMoment) renderActive();
 }
-function setNarration(n, text, annotation) {
-  const { body, arc } = splitArc(text);
-  results[n] = { annotation: annotation || null, body, arc };
+function setResult(n, data) {
+  results[n] = {
+    summary: data.summary || "",
+    annotation: data.annotation || null,
+    narration: data.narration || "",
+    emilyArc: data.emilyArc || "",
+    otherArc: data.otherArc || "",
+  };
   if (n === activeMoment) renderActive();
 }
 function setError(n, msg) {
@@ -616,6 +671,14 @@ function setError(n, msg) {
 /* ============================================================
    Panel logic
    ============================================================ */
+const TONE =
+  "Write in warm, clear literary prose. Avoid overwrought metaphors or purple " +
+  "prose. Think Sally Rooney, not Victorian novel.";
+
+const JSON_RULE =
+  "Respond ONLY with a single valid JSON object — no markdown, no code fences, " +
+  "no text outside the JSON. All field values are plain strings.";
+
 async function runPanel(n) {
   const btn = document.getElementById("share-btn");
   btn.disabled = true;
@@ -643,14 +706,18 @@ async function panel1() {
     "narration of this event — 3-4 paragraphs. You must inhabit BOTH people's " +
     "inner worlds. Emily's perspective AND the other person's interior " +
     "experience, fears, and assumptions. This is not a journal. It is a novel " +
-    "scene where both characters are fully human. End with one sentence of " +
-    "character analysis about Emily. Never be reassuring or preachy.";
+    "scene where both characters are fully human. Never be reassuring or preachy. " +
+    TONE + "\n\n" + JSON_RULE + " Fields:\n" +
+    "\"summary\": 2-3 sentences, plain English, what just happened (a quick factual read, not literary).\n" +
+    "\"narration\": the full 3-4 paragraph novel scene described above.\n" +
+    "\"emilyArc\": one or two sentences of character analysis about Emily.\n" +
+    "\"christianArc\": one or two sentences inhabiting Christian — his perspective, fears, and what is happening inside him.";
 
-  const narration = await callRen(system, story);
-  setNarration(1, narration);
+  const data = parseRen(await callRen(system, story));
+  setResult(1, data);
 
   await hydraIngest(
-    "Moment 1 - Christian ghosting: " + narration.slice(0, 400) +
+    "Moment 1 - Christian ghosting: " + data.narration.slice(0, 400) +
     " ... Emily's pattern: tends toward self-blame, needs prompting to consider " +
     "alternatives. Christian's profile: warm and communicative, suddenly went " +
     "quiet — likely something internal."
@@ -668,37 +735,29 @@ async function panel2() {
 
   const system =
     "You are Ren. You have memory of a past chapter. A new chapter has arrived " +
-    "that recontextualizes everything. Write two things:\n" +
-    "1. An annotation to the original chapter — what we now know was true that " +
-    "we couldn't have known then (2-3 sentences, start with 'What we now know:')\n" +
-    "2. A new scene narrating this moment of revelation, again from both " +
-    "perspectives — Emily receiving this information, and what Christian carried " +
-    "all this time.\n" +
-    "End with an updated character arc note for Emily: how has she grown since Moment 1?";
+    "that recontextualizes everything. " +
+    TONE + "\n\n" + JSON_RULE + " Fields:\n" +
+    "\"summary\": 2-3 sentences, plain English, what this new chapter reveals (a quick factual read).\n" +
+    "\"annotation\": an annotation to the original chapter — what we now know was true that we " +
+    "couldn't have known then (2-3 sentences, start with 'What we now know:').\n" +
+    "\"narration\": a new scene narrating this moment of revelation, from both perspectives — Emily " +
+    "receiving this information, and what Christian carried all this time.\n" +
+    "\"emilyArc\": an updated character arc note for Emily — how has she grown since Moment 1?\n" +
+    "\"christianArc\": one or two sentences on what Christian carried all this time — his perspective and character notes.";
 
   const userContent =
     "PAST CHAPTER (recalled from memory):\n" +
     (memories.length ? memories.join("\n---\n") : "(no prior memory found)") +
     "\n\nNEW CHAPTER:\n" + story;
 
-  const out = await callRen(system, userContent);
-
-  // Split out the leading "What we now know:" annotation if present.
-  let annotation = null, rest = out;
-  const idx = out.indexOf("What we now know:");
-  if (idx !== -1) {
-    const after = out.slice(idx);
-    const para = after.split(/\n\s*\n/)[0];
-    annotation = para.trim();
-    rest = (out.slice(0, idx) + after.slice(para.length)).trim();
-  }
-  setNarration(2, rest, annotation);
+  const data = parseRen(await callRen(system, userContent));
+  setResult(2, data);
 
   await hydraIngest(
     "Moment 3 update - Christian revealed intimidation. Original narrative " +
     "corrected: his silence was self-protection, not rejection. Emily character " +
     "update: more empathetic, self-appreciative, able to hold complexity. " +
-    "Narrative: " + rest.slice(0, 300)
+    "Narrative: " + data.narration.slice(0, 300)
   );
 }
 
@@ -713,28 +772,28 @@ async function panel3() {
 
   const system =
     "You are Ren. You have Emily's full story — the Christian ghosting, the " +
-    "revelation, her growth. A new ghosting has arrived. But read her response: " +
-    "'could be him, could be me, not going to spiral.'\n" +
-    "Write:\n" +
-    "1. A short narration of this new moment (2 paragraphs) — both perspectives, " +
-    "same literary style\n" +
-    "2. A character development note: explicitly compare Emily in Moment 1 " +
-    "(self-blame spiral) to Emily now (settled, curious, not activated). Name " +
-    "what has shifted. This is the arc.";
+    "revelation, her growth. A new ghosting has arrived, this time from Raj. But " +
+    "read her response: 'could be him, could be me, not going to spiral.' " +
+    TONE + "\n\n" + JSON_RULE + " Fields:\n" +
+    "\"summary\": 2-3 sentences, plain English, what is happening now (a quick factual read).\n" +
+    "\"narration\": a short narration of this new moment (2 paragraphs) — both perspectives, same literary style.\n" +
+    "\"emilyArc\": a character development note that explicitly compares Emily in Moment 1 " +
+    "(self-blame spiral) to Emily now (settled, curious, not activated). Name what has shifted. This is the arc.\n" +
+    "\"christianArc\": one or two sentences inhabiting Raj — his perspective and what might be going on for him.";
 
   const userContent =
     "EMILY'S FULL HISTORY (recalled from memory):\n" +
     (memories.length ? memories.join("\n---\n") : "(no prior memory found)") +
     "\n\nNEW MOMENT:\n" + story;
 
-  const out = await callRen(system, userContent);
-  setNarration(3, out);
+  const data = parseRen(await callRen(system, userContent));
+  setResult(3, data);
 
   await hydraIngest(
     "Moment 4 - New ghosting, new Emily. She is settled, curious, not activated; " +
     "no self-blame spiral. The arc from Moment 1 is complete: she can hold " +
     "ambiguity without collapsing into self-blame. " +
-    "Narrative: " + out.slice(0, 300)
+    "Narrative: " + data.narration.slice(0, 300)
   );
 }
 
