@@ -12,6 +12,7 @@ import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
+import { randomBytes } from "node:crypto";
 import { HydraDBClient } from "@hydradb/sdk";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -40,6 +41,33 @@ if (!OPENAI_KEY) {
 }
 
 const hydra = new HydraDBClient({ token: HYDRA_KEY });
+
+/* ---- shared-secret gate -------------------------------------------------- */
+// Protects both the app page and the /api/* endpoints so that exposing this
+// proxy publicly (e.g. via ngrok) doesn't hand the world an open relay to your
+// OpenAI / HydraDB keys. Set REN_SECRET to pin a value; otherwise one is
+// generated per run. Access with ?key=SECRET once — a cookie carries it after.
+const SECRET = process.env.REN_SECRET || randomBytes(16).toString("hex");
+
+function presentedSecret(req) {
+  const url = new URL(req.url, "http://x");
+  const q = url.searchParams.get("key");
+  if (q) return q;
+  const h = req.headers["x-ren-key"];
+  if (h) return Array.isArray(h) ? h[0] : h;
+  const cookie = req.headers.cookie || "";
+  const m = cookie.match(/(?:^|;\s*)ren_key=([^;]+)/);
+  if (m) return decodeURIComponent(m[1]);
+  return null;
+}
+function authed(req) { return presentedSecret(req) === SECRET; }
+
+const UNAUTH_PAGE =
+  "<!doctype html><meta charset=utf-8><title>Ren — locked</title>" +
+  "<body style=\"font-family:Georgia,serif;background:#FAF7F2;color:#4A1942;" +
+  "display:flex;height:100vh;margin:0;align-items:center;justify-content:center;text-align:center\">" +
+  "<div><h1 style=\"letter-spacing:.12em\">REN 恋</h1>" +
+  "<p>This instance is locked. Append <code>?key=YOUR_SECRET</code> to the URL.</p></div>";
 
 /* ---- HydraDB helpers ----------------------------------------------------- */
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -139,14 +167,14 @@ function sendJSON(res, code, obj) {
   res.end(body);
 }
 
-async function serveStatic(req, res) {
+async function serveStatic(req, res, extraHeaders = {}) {
   let path = req.url.split("?")[0];
   if (path === "/") path = "/index.html";
   // confine to this directory
   const safe = join(__dirname, path.replace(/\.\.+/g, "."));
   try {
     const data = await readFile(safe);
-    res.writeHead(200, { "Content-Type": MIME[extname(safe)] || "application/octet-stream" });
+    res.writeHead(200, { "Content-Type": MIME[extname(safe)] || "application/octet-stream", ...extraHeaders });
     res.end(data);
   } catch {
     res.writeHead(404, { "Content-Type": "text/plain" });
@@ -156,22 +184,42 @@ async function serveStatic(req, res) {
 
 const server = createServer(async (req, res) => {
   try {
-    if (req.method === "POST" && req.url === "/api/hydra/query") {
-      const { query } = await readBody(req);
-      const memories = await hydraQuery(String(query || ""));
-      return sendJSON(res, 200, { memories });
+    const pathname = req.url.split("?")[0];
+
+    // ---- /api/* : always require the shared secret ----
+    if (pathname.startsWith("/api/")) {
+      if (!authed(req)) return sendJSON(res, 401, { error: "unauthorized" });
+      if (req.method === "POST" && pathname === "/api/hydra/query") {
+        const { query } = await readBody(req);
+        const memories = await hydraQuery(String(query || ""));
+        return sendJSON(res, 200, { memories });
+      }
+      if (req.method === "POST" && pathname === "/api/hydra/ingest") {
+        const { text } = await readBody(req);
+        const r = await hydraIngest(String(text || ""));
+        return sendJSON(res, 200, { ok: true, ...r });
+      }
+      if (req.method === "POST" && pathname === "/api/openai") {
+        const { system, user } = await readBody(req);
+        const text = await callOpenAI(String(system || ""), String(user || ""));
+        return sendJSON(res, 200, { text });
+      }
+      res.writeHead(404); return res.end("Not found");
     }
-    if (req.method === "POST" && req.url === "/api/hydra/ingest") {
-      const { text } = await readBody(req);
-      const r = await hydraIngest(String(text || ""));
-      return sendJSON(res, 200, { ok: true, ...r });
+
+    // ---- static : also gated; ?key=SECRET sets a cookie for later requests ----
+    if (req.method === "GET") {
+      if (!authed(req)) {
+        res.writeHead(401, { "Content-Type": "text/html" });
+        return res.end(UNAUTH_PAGE);
+      }
+      const headers = {};
+      if (new URL(req.url, "http://x").searchParams.get("key") === SECRET) {
+        headers["Set-Cookie"] = `ren_key=${encodeURIComponent(SECRET)}; Path=/; SameSite=Lax; Max-Age=86400`;
+      }
+      return serveStatic(req, res, headers);
     }
-    if (req.method === "POST" && req.url === "/api/openai") {
-      const { system, user } = await readBody(req);
-      const text = await callOpenAI(String(system || ""), String(user || ""));
-      return sendJSON(res, 200, { text });
-    }
-    if (req.method === "GET") return serveStatic(req, res);
+
     res.writeHead(405); res.end("Method not allowed");
   } catch (e) {
     console.error("✗", e.message);
@@ -183,5 +231,7 @@ server.listen(PORT, () => {
   console.log(`Ren proxy listening → http://localhost:${PORT}`);
   console.log(`  HydraDB key:  ${HYDRA_KEY.slice(0, 12)}…  (tenant: ${TENANT_ID})`);
   console.log(`  OpenAI key:   ${OPENAI_KEY ? OPENAI_KEY.slice(0, 10) + "…" : "(not set)"}  model: ${OPENAI_MODEL}`);
-  console.log(`  Open the URL above in your browser.`);
+  console.log(`  🔒 access secret: ${SECRET}`);
+  console.log(`  Open locally → http://localhost:${PORT}/?key=${SECRET}`);
+  console.log(`  (when tunneled, use https://<ngrok-host>/?key=${SECRET})`);
 });

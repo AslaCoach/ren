@@ -501,11 +501,11 @@ async function callRen(system, userContent) {
 const MOMENTS = {
   1: {
     icon: "💔", title: "The Ghosting", meta: "Christian · 6 months ago",
-    story: `Christian asked if the tampon box was mine. I said yes lol, I left it for next time, sorry for not telling you. He went quiet. I reached out a few times about hanging out — no response. Eventually I asked: are you ghosting me? He replied 'haha.' That was it.`,
+    story: `Christian asked if the toiletry bag was mine. I said yes lol, I left it for next time, sorry for not telling you. He went quiet. I reached out a few times about hanging out — no response. Eventually I asked: are you ghosting me? He replied 'haha.' That was it.`,
   },
   2: {
     icon: "✨", title: "The Reveal", meta: "Christian reaches out · present",
-    story: `I just got into Stanford MBA. Christian reached out to congratulate me. He said he was intimidated by me and the tampon box sealed it for him — he felt like I was too comfortable and he wasn't on my level. He's been quietly supporting my LinkedIn posts ever since. A year later he got into Chicago MBA. I congratulated him. He said he felt bad it didn't work out and wished me the best.`,
+    story: `I just got into Stanford MBA. Christian reached out to congratulate me. He said he was intimidated by me and the toiletry bag sealed it for him — he felt like I was too comfortable and he wasn't on my level. He's been quietly supporting my LinkedIn posts ever since. A year later he got into Chicago MBA. I congratulated him. He said he felt bad it didn't work out and wished me the best.`,
   },
   3: {
     icon: "🌱", title: "New Chapter", meta: "Raj · this week",
@@ -661,7 +661,7 @@ async function panel1() {
 async function panel2() {
   const story = inputText(2);
 
-  const memories = await hydraQuery("Christian Emily ghosting tampon");
+  const memories = await hydraQuery("Christian Emily ghosting toiletry bag");
   if (memories.length) {
     logLine(`   ↳ first memory: "${memories[0].slice(0, 120)}${memories[0].length > 120 ? "…" : ""}"`, "recalled");
   }

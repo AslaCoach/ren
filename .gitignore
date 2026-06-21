@@ -7,3 +7,6 @@ node_modules/
 package-lock.json
 package.json
 test-hydra.js
+
+# Claude Code local settings (may contain keys from recorded commands)
+.claude/
